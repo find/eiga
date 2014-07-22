@@ -6,11 +6,10 @@ The framework is built upon the insanely fast LuaJIT compiler and it's native FF
 
 ## Examples
 
-#[VAO](https://github.com/find/eiga/tree/master/examples/vertex_array_object_cube_dx_matrix/)
+1. [VAO](https://github.com/find/eiga/tree/master/examples/vertex_array_object_cube_dx_matrix/)
+2. [Obj Display](https://github.com/find/eiga/tree/master/examples/obj_display/)
 
-#[Obj Display](https://github.com/find/eiga/tree/master/examples/obj_display/)
-
-![miku](https://github.com/find/eiga/tree/master/examples/obj_display/miku.png)
+  ![miku](https://github.com/find/eiga/tree/master/examples/obj_display/miku.png)
 
 ## Running the examples
 
