@@ -76,6 +76,19 @@ function Effect:sendMatrix4 ( matrix, name )
   eiga.graphics.useEffect()
 end
 
+function Effect:sendFloat4 ( val, name )
+  eiga.graphics.useEffect( self )
+  if val ~= self.l_cache[name] then
+    self.l_cache[name] = val
+    self.c_cache[name] = ffi.new( "GLfloat[?]", 4, val )
+    self.gl_cache[name] = gl.GetUniformLocation(self.program, name)
+    assert( self.gl_cache[name] ~= -1, name )
+  end
+
+  gl.UniformFloat4fv( self.gl_cache[name], 1, gl.FALSE, self.c_cache[name] )
+  eiga.graphics.useEffect()
+end
+
 function Effect:sendTexture ( texture, name )
   eiga.graphics.useEffect( self )
   if not self.l_cache[name] then

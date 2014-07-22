@@ -93,12 +93,12 @@ function eiga.graphics.useVertexArray ( vertex_array_name )
   gl.BindVertexArray( vertex_array_name )
 end
 
-function eiga.graphics.newArrayBuffer ( format, size )
-  return ArrayBuffer( format, size )
+function eiga.graphics.newArrayBuffer ( format, ... )
+  return ArrayBuffer( format, ... )
 end
 
-function eiga.graphics.newIndexBuffer ( size )
-  return IndexBuffer( size )
+function eiga.graphics.newIndexBuffer ( ... )
+  return IndexBuffer( ... )
 end
 
 function eiga.graphics.useEffect( effect )
@@ -109,8 +109,8 @@ function eiga.graphics.draw ( primitive_type, index_count, index_type )
   gl.DrawElements( primitive_type, index_count, index_type, nil);
 end
 
-function eiga.graphics.newMesh ( format )
-  return Mesh( format )
+function eiga.graphics.newMesh ( ... )
+  return Mesh( ... )
 end
 
 function eiga.graphics.newTexture ( path, near_filter, far_filter )

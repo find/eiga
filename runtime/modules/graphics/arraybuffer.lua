@@ -7,56 +7,54 @@ local gl = eiga.alias.gl()
 
 local BUFFER_LENGTH = 1024 -- 256 vertices, 4-component vectors
 
-local EFFECT_ATTRIBUTE_STRING = {
-  v = "Position",
-  n = "Normal",
-  c = "Color",
-  t = "TexCoord"
-}
-
 local BUFFER_DATA_TYPE = {
-  i = gl.INT,
-  I = gl.UNSIGNED_INT,
-  f = gl.FLOAT
+  short  = gl.SHORT,
+  ushort = gl.UNSIGNED_SHORT,
+  int    = gl.INT,
+  uint   = gl.UNSIGNED_INT,
+  float  = gl.FLOAT,
+  vec    = gl.FLOAT,
 }
 
 local FFI_LENGTH_SIGNATURE = {
-  [gl.INT] = "GLint[?]",
-  [gl.UNSIGNED_INT] = "GLuint[?]",
-  [gl.FLOAT] = "GLfloat[?]",
+  [gl.SHORT]          = "GLshort[?]",
+  [gl.UNSIGNED_SHORT] = "GLushort[?]",
+  [gl.INT]            = "GLint[?]",
+  [gl.UNSIGNED_INT]   = "GLuint[?]",
+  [gl.FLOAT]          = "GLfloat[?]",
 }
 
 local TYPE_IDENTIFIER = {
-  [gl.INT] = "GLint",
-  [gl.UNSIGNED_INT] = "GLuint",
-  [gl.FLOAT] = "GLfloat",
+  [gl.SHORT]          = "GLshort",
+  [gl.UNSIGNED_SHORT] = "GLushort",
+  [gl.INT]            = "GLint",
+  [gl.UNSIGNED_INT]   = "GLuint",
+  [gl.FLOAT]          = "GLfloat",
 }
 
 local function parse ( format )
-  if format:find( "[vcnt]" ) then
-    local attribute_type, component_count, component_type = format:match("(%C)(%d)(%C)")
-    assert( attribute_type )
-    assert( component_count )
-    assert( component_type )
-    return attribute_type, tonumber(component_count), component_type
-  else
-    error( "parse: Array buffer format not understood\n" )
-  end
+  local component_type, component_count = format:match("([^%d%s]+)(%C)")
+  assert( component_type )
+  return component_type, tonumber(component_count)
 end
 
-local function new ( format, size )
-  local attribute_type, component_count, component_type = parse( format )
+local function new ( format, name, size )
+  local component_type, component_count = parse( format )
+  local attribute_location = nil
   assert( component_type )
-  if attribute_type ~= "t" then
-    assert( component_count == 4, string.format("For now, buffers need to be homogeneous: %d", component_count) )
-  end
+  component_count = component_count or 1
+  print(string.format('new ArrrayBuffer of type %s(%d), named %s', component_type, component_count, name ))
+  -- if name ~= "texcoord" then
+  --   assert( component_count == 4, string.format("For now, buffers need to be homogeneous: %d", component_count) )
+  -- end
+
 
   local attribute_pointer_type = BUFFER_DATA_TYPE[ component_type ]
   local ffi_length_signature = FFI_LENGTH_SIGNATURE[ attribute_pointer_type ]
   local type_size = ffi.sizeof( TYPE_IDENTIFIER[ attribute_pointer_type ] )
-  local buffer_size = type_size * size
+  local buffer_size = size * type_size * component_count
   local buffer_id = ffi.new ( "GLuint[1]" )
-  local attribute_string = EFFECT_ATTRIBUTE_STRING[ attribute_type ]
+  local attribute_string = name
   local component_count = component_count
 
   gl.GenBuffers( 1, buffer_id  )
@@ -82,6 +80,7 @@ end
 function ArrayBuffer:setData( data )
   -- check if our buffer has enough room the incoming data
   if #data * self.type_size > self.buffer_size then
+    print('ArrayBuffer::setData: data too long, re-creating buffer')
     -- compute new size of buffer
     self.buffer_size = #data * self.type_size
     gl.BindBuffer( gl.ARRAY_BUFFER, self.buffer_id[0] )

@@ -6,8 +6,10 @@ local ffi = require 'ffi'
 local gl = eiga.alias.gl()
 
 local function new ( size )
-  local ffi_length_signature = "GLushort[?]"
-  local type_size = ffi.sizeof( "GLushort" )
+  local tp = size>=0xffff and 'GLuint' or 'GLushort'
+  print(string.format('using %s as index buffer', tp))
+  local ffi_length_signature = string.format("%s[?]", tp)
+  local type_size = ffi.sizeof( tp )
   local buffer_size = type_size * size
   local buffer_id = ffi.new ( "GLuint[1]" )
 
@@ -17,9 +19,10 @@ local function new ( size )
   gl.BindBuffer( gl.ELEMENT_ARRAY_BUFFER, 0 )
 
   local obj = {
-    buffer_id = buffer_id;
+    buffer_id   = buffer_id;
     buffer_size = buffer_size;
-    type_size = type_size;
+    type_size   = type_size;
+    gl_type     = tp == 'GLushort' and gl.UNSIGNED_SHORT or gl.UNSIGNED_INT;
     ffi_length_signature = ffi_length_signature;
   }
 
