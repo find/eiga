@@ -19,10 +19,10 @@
 -- DEALINGS IN THE SOFTWARE.
 
 function eiga.config ( o )
-  o.screen.width = 640
-  o.screen.height = 480
+  o.screen.width = 600
+  o.screen.height = 600
   o.screen.fullscreen = false
   o.screen.vsync = false
-  o.screen.fsaa = 0
-  o.screen.title = "Eiga: Immediate Mode - Cube"
+  o.screen.fsaa  = 8
+  o.screen.title = "Hello Miku"
 end

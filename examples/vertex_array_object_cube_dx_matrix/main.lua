@@ -25,8 +25,7 @@ local glfw = eiga.alias.glfw()
 local soil = eiga.ffi.soil
 local physfs = eiga.alias.physfs()
 
-local Matrix4 = require 'math.mat4'
-local Vector3 = require 'math.vec3'
+local Math = require 'math3dhelper'
 
 local i = 0.25
 
@@ -74,16 +73,26 @@ local data = {
             20, 21, 23, 20, 23, 22 };
 }
 
-local mesh = eiga.graphics.newMesh( "IndexPositionTexCoord" )
+local mesh = eiga.graphics.newMesh( "vec4 position;vec2 texcoord", #data.texcoord/2, #data.index )
 
 local effect = eiga.graphics.newEffect( "assets/effect.vert",
                                         "assets/effect.frag" );
 
-local m = Matrix4.scale( 2.0, 2.0, 2.0 )
-local v = Matrix4.lookat( Vector3( 0, 0, -3 ),
-                          Vector3( 0, 0, 0 ),
-                          Vector3( 0, 1, 0 ) )
-local p = Matrix4.perspectiveFov( 55, 16/9, 0.1, 100 )
+local world = mat4.scaling ( vec3(2.0, 2.0, 2.0) )
+local view = mat4.lookAtLH( vec3( 0, 0, -3 ),
+                            vec3( 0, 0, 0 ),
+                            vec3( 0, 1, 0 ) )
+local fov = 3.14159265358979*60.0/180.0
+local proj = mat4.perspectiveFovLH( fov, 1, 0.5, 100 )
+
+view:set(0,0, -view(0,0)) -- flip x axis
+local toGLProj = function(m)
+    m = mat4(m)
+    m:set(3,2, 2*m(3,2))
+    return m
+end
+local toTable = Math.toTable
+
 
 function eiga.load ( args )
   gl.Enable( gl.CULL_FACE )
@@ -97,21 +106,19 @@ function eiga.load ( args )
   stone_texture = eiga.graphics.newTexture( "assets/stone.png", gl.NEAREST, gl.NEAREST )
   gl.BindTexture( gl.TEXTURE_2D, stone_texture )
 
-  for i=#data.position+1, 1024 do data.position[i] = 0 end
   mesh.buffers.position:setData( data.position )
-  for i=#data.texcoord+1, 1024 do data.texcoord[i] = 0 end
   mesh.buffers.texcoord:setData( data.texcoord )
   mesh.buffers.index:setData( data.index )
-  mesh:compile( effect )
+  mesh:link( effect )
 
   effect:sendTexture( 0, "tex0")
-  effect:sendMatrix4( m, "Model" )
-  effect:sendMatrix4( v, "View" )
-  effect:sendMatrix4( p, "Projection" )
+  effect:sendMatrix4( toTable(world:transposed()), "Model" )
+  effect:sendMatrix4( toTable(view:transposed()), "View" )
+  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end
 
 function eiga.update ( dt )
-  effect:sendMatrix4( Matrix4.rotate( eiga.timer.get_time(), 0.3, 1, 0 ) * m , "Model" )
+  effect:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0.3, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
 end
 
 function eiga.draw ()
@@ -119,11 +126,13 @@ function eiga.draw ()
 end
 
 function eiga.keypressed ( key )
-  if key == glfw.KEY_ESC then
+  if key == glfw.KEY_ESC or key == glfw.KEY_Q then
     eiga.event.push("quit")
   end
 end
 
 function eiga.resized ( width, height )
   gl.Viewport( 0, 0, width, height )
+  proj = mat4.perspectiveFovLH( fov, width/height, 0.5, 100 )
+  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end

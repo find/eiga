@@ -20,9 +20,23 @@
 
 #version 110
 
-varying vec4 ExColor;
+uniform mat4 Model;
+uniform mat4 View;
+uniform mat4 Projection;
+
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec2 texcoord;
+
+varying vec3 WorldNormal;
+varying vec2 ExTexCoord;
 
 void main()
 {
-    gl_FragColor = ExColor;
+    ExTexCoord  = texcoord;
+    WorldNormal = (vec4(normal,1) * Model).xyz;
+
+    gl_Position = vec4(position,1) * Model * View * Projection; // Projection * View * Model * Position;
+    // gl_Position.z = -gl_Position.z;
+    // gl_Position.x = -gl_Position.x;
 }

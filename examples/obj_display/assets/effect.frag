@@ -20,13 +20,17 @@
 
 #version 110
 
-attribute vec4 Position;
-attribute vec4 Color;
+uniform sampler2D tex0;
 
-varying vec4 ExColor;
+varying vec2 ExTexCoord;
+varying vec3 WorldNormal;
+// out vec4 FragColor;
 
 void main()
 {
-    ExColor = Color;
-    gl_Position = gl_ModelViewProjectionMatrix * Position;
+    // light dir -----------------+
+    //                            |
+    gl_FragColor = vec4(abs(dot(vec3(0,-0.3,1), WorldNormal))*vec3(1,1,1), 1);
+    //                                                         |
+    // light color --------------------------------------------+
 }

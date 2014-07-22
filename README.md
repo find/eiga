@@ -6,10 +6,11 @@ The framework is built upon the insanely fast LuaJIT compiler and it's native FF
 
 ## Examples
 
-* [Immediate Mode Triangle](http://github.com/ncarlson/eiga/blob/master/examples/immediate_triangle/main.lua)
-* [Immediate Mode Cube](http://github.com/ncarlson/eiga/blob/master/examples/immediate_cube/main.lua)
-* [Dynamic Vertex Buffer](http://github.com/ncarlson/eiga/blob/master/examples/vao_map_unmap_dynamic/main.lua)
-* [Shader Centric Rendering](http://github.com/ncarlson/eiga/blob/master/examples/vertex_array_object_cube/main.lua)
+#[VAO](https://github.com/find/eiga/tree/master/examples/vertex_array_object_cube_dx_matrix/)
+
+#[Obj Display](https://github.com/find/eiga/tree/master/examples/obj_display/)
+
+![miku](https://github.com/find/eiga/tree/master/examples/obj_display/miku.png)
 
 ## Running the examples
 

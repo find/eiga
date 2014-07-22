@@ -24,13 +24,15 @@ uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
-attribute vec4 Position;
-attribute vec2 TexCoord;
+attribute vec4 position;
+attribute vec2 texcoord;
 
 varying vec2 ExTexCoord;
 
 void main()
 {
-    ExTexCoord = TexCoord;
-    gl_Position = Projection * View * Model * Position;
+    ExTexCoord = texcoord;
+    gl_Position = position * Model * View * Projection; // Projection * View * Model * Position;
+    // gl_Position.z = -gl_Position.z;
+    // gl_Position.x = -gl_Position.x;
 }
