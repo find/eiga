@@ -63,7 +63,8 @@ local function new ( vs_src, fs_src )
   return setmetatable( obj, Shader )
 end
 
-function Shader:sendMatrix4 ( matrix, name )
+function Shader:sendMatrix4 ( matrix, name, transposed )
+  transposed = transposed or gl.FALSE
   eiga.graphics.useShader( self )
   if matrix ~= self.l_cache[name] then
     self.l_cache[name] = matrix
@@ -72,7 +73,7 @@ function Shader:sendMatrix4 ( matrix, name )
     assert( self.gl_cache[name] ~= -1, name )
   end
 
-  gl.UniformMatrix4fv( self.gl_cache[name], 1, gl.FALSE, self.c_cache[name] )
+  gl.UniformMatrix4fv( self.gl_cache[name], 1, transposed, self.c_cache[name] )
   eiga.graphics.useShader()
 end
 

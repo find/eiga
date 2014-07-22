@@ -71,6 +71,8 @@ assert(#data.position/3 == #data.texcoord/2, string.format('texcoord has %d elem
 
 local mesh = eiga.graphics.newMesh( "vec3 position; vec3 normal; vec2 texcoord", #data.texcoord/2, #data.index )
 
+print('mesh created')
+
 local shader = eiga.graphics.newShader( "assets/effect.vert",
                                         "assets/effect.frag" );
 
@@ -95,15 +97,15 @@ end
 function eiga.load ( args )
   gl.Enable( gl.CULL_FACE )
   -- gl.FrontFace( gl.CW )
-  gl.Enable( gl.TEXTURE_2D )
-  gl.Enable( gl.BLEND )
-  gl.BlendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA )
+  -- gl.Enable( gl.TEXTURE_2D )
+  -- gl.Enable( gl.BLEND )
+  -- gl.BlendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA )
   gl.Enable( gl.DEPTH_TEST )
   gl.DepthFunc( gl.LESS )
 
-  gl.ActiveTexture( gl.TEXTURE0 )
-  stone_texture = eiga.graphics.newTexture( "assets/stone.png", gl.NEAREST, gl.NEAREST )
-  gl.BindTexture( gl.TEXTURE_2D, stone_texture )
+  -- gl.ActiveTexture( gl.TEXTURE0 )
+  -- stone_texture = eiga.graphics.newTexture( "assets/stone.png", gl.NEAREST, gl.NEAREST )
+  -- gl.BindTexture( gl.TEXTURE_2D, stone_texture )
 
   mesh.buffers.position:setData( data.position )
   mesh.buffers.texcoord:setData( data.texcoord )
@@ -112,13 +114,13 @@ function eiga.load ( args )
   mesh:link( shader )
 
   -- shader:sendTexture( 0, "tex0")
-  shader:sendMatrix4( toTable(world:transposed()), "Model" )
-  shader:sendMatrix4( toTable(view:transposed()), "View" )
-  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  shader:sendMatrix4( toTable(world), "Model", true )
+  shader:sendMatrix4( toTable(view), "View", true )
+  shader:sendMatrix4( toTable(toGLProj(proj)), "Projection", true )
 end
 
 function eiga.update ( dt )
-  shader:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
+  shader:sendMatrix4( toTable(world*mat4.fromAxisAngle( vec3(0, 1, 0), eiga.timer.get_time() )) , "Model", true )
 end
 
 function eiga.draw ()
@@ -134,5 +136,5 @@ end
 function eiga.resized ( width, height )
   gl.Viewport( 0, 0, width, height )
   proj = mat4.perspectiveFovLH( fov, width/height, 0.5, 100 )
-  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  shader:sendMatrix4( toTable(toGLProj(proj)), "Projection", true )
 end
