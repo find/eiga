@@ -59,6 +59,7 @@ local function preload()
 
   eiga.arg.c_src_dir = ffi.new("char[?]", #src_dir+1, src_dir)
   package.path = package.path .. ";"..src_dir.."/?.lua;"..src_dir.."/?/init.lua"
+  package.cpath = package.cpath .. ';' .. src_dir..'/?.'..clib_ext
 
   package.preload['eiga'] = function () end
 
@@ -344,7 +345,7 @@ function eiga.init()
                                                           __VERSION.MINOR,
                                                           __VERSION.POINT)
   local options = {
-    screen = {
+    window = {
       width = 640;
       height = 480;
       fullscreen = false;
@@ -388,7 +389,7 @@ function eiga.init()
 
   if eiga.graphics then
     eiga.graphics.init()
-    eiga.graphics.set_mode( options.screen )
+    eiga.graphics.set_mode( options.window )
   end
 
   if eiga.timer then

@@ -71,7 +71,7 @@ assert(#data.position/3 == #data.texcoord/2, string.format('texcoord has %d elem
 
 local mesh = eiga.graphics.newMesh( "vec3 position; vec3 normal; vec2 texcoord", #data.texcoord/2, #data.index )
 
-local effect = eiga.graphics.newEffect( "assets/effect.vert",
+local shader = eiga.graphics.newShader( "assets/effect.vert",
                                         "assets/effect.frag" );
 
 local world = mat4.identity()
@@ -87,6 +87,7 @@ local toTable = Math.toTable
 
 local toGLProj = function(m)
     m = mat4(m)
+    -- m = mat4.scaling(vec3(1,1,2)) * m
     m:set(3,2, 2*m(3,2))
     return m
 end
@@ -108,20 +109,20 @@ function eiga.load ( args )
   mesh.buffers.texcoord:setData( data.texcoord )
   mesh.buffers.normal:setData( data.normal )
   mesh.buffers.index:setData( data.index )
-  mesh:link( effect )
+  mesh:link( shader )
 
-  -- effect:sendTexture( 0, "tex0")
-  effect:sendMatrix4( toTable(world:transposed()), "Model" )
-  effect:sendMatrix4( toTable(view:transposed()), "View" )
-  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  -- shader:sendTexture( 0, "tex0")
+  shader:sendMatrix4( toTable(world:transposed()), "Model" )
+  shader:sendMatrix4( toTable(view:transposed()), "View" )
+  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end
 
 function eiga.update ( dt )
-  effect:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
+  shader:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
 end
 
 function eiga.draw ()
-  mesh:draw( #data.index, effect )
+  mesh:draw( #data.index, shader )
 end
 
 function eiga.keypressed ( key )
@@ -133,5 +134,5 @@ end
 function eiga.resized ( width, height )
   gl.Viewport( 0, 0, width, height )
   proj = mat4.perspectiveFovLH( fov, width/height, 0.5, 100 )
-  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end

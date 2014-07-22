@@ -25,7 +25,7 @@ local glew = eiga.alias.glew()
 local gl = eiga.alias.gl()
 local soil = eiga.ffi.soil
 
-local Effect = require 'graphics.effect'
+local Shader = require 'graphics.shader'
 local ArrayBuffer = require 'graphics.arraybuffer'
 local IndexBuffer = require 'graphics.indexbuffer'
 local Mesh = require 'graphics.mesh'
@@ -49,6 +49,20 @@ end
 
 function eiga.graphics.set_mode ( mode )
   glfw.OpenWindowHint( glfw.FSAA_SAMPLES, mode.fsaa )
+  if mode.glversion~=nil then
+      local major, minor = mode.glversion:match('(%d).(%d)')
+      if major and minor then
+          glfw.OpenWindowHint( glfw.OPENGL_VERSION_MAJOR, tonumber(major) )
+          glfw.OpenWindowHint( glfw.OPENGL_VERSION_MINOR, tonumber(minor) )
+      end
+  end
+  if mode.glprofile~=nil then
+      local profile = ({compat=glfw.OPENGL_COMPAT_PROFILE, core=glfw.OPENGL_CORE_PROFILE})[mode.glprofile]
+      if profile~=nil then
+          glfw.OpenWindowHint( glfw.OPENGL_PROFILE, profile )
+      end
+  end
+
   glfw.OpenWindow(mode.width, mode.height,
                   mode.red, mode.green, mode.blue, mode.alpha,
                   mode.depth, mode.stencil,
@@ -77,10 +91,10 @@ function eiga.graphics.deinit ()
   glfw.Terminate()
 end
 
-function eiga.graphics.newEffect( vertex_shader_path, fragment_shader_path )
+function eiga.graphics.newShader( vertex_shader_path, fragment_shader_path )
   local vs_src = eiga.filesystem.read( vertex_shader_path )
   local fs_src = eiga.filesystem.read( fragment_shader_path )
-  return Effect( vs_src, fs_src )
+  return Shader( vs_src, fs_src )
 end
 
 function eiga.graphics.newVertexArray ()
@@ -101,8 +115,8 @@ function eiga.graphics.newIndexBuffer ( ... )
   return IndexBuffer( ... )
 end
 
-function eiga.graphics.useEffect( effect )
-  gl.UseProgram( effect and effect.program or 0 )
+function eiga.graphics.useShader( shader )
+  gl.UseProgram( shader and shader.program or 0 )
 end
 
 function eiga.graphics.draw ( primitive_type, index_count, index_type )

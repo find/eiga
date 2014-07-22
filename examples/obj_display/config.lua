@@ -19,10 +19,12 @@
 -- DEALINGS IN THE SOFTWARE.
 
 function eiga.config ( o )
-  o.screen.width = 600
-  o.screen.height = 600
-  o.screen.fullscreen = false
-  o.screen.vsync = false
-  o.screen.fsaa  = 8
-  o.screen.title = "Hello Miku"
+  o.window.width = 600
+  o.window.height = 600
+  o.window.fullscreen = false
+  o.window.vsync = false
+  o.window.fsaa  = 8
+  o.window.title = "Hello Miku"
+  o.window.glprofile = 'compat'
+  o.window.glversion = '3.3'
 end

@@ -35,21 +35,21 @@ local function new ( format, vbSize, ibSize )
   return setmetatable( obj, Mesh )
 end
 
-function Mesh:link( effect )
+function Mesh:link( shader )
   gl.BindVertexArray( self.vertex_array[0] )
     for _, buffer in pairs( self.buffers ) do
-      buffer:enable( effect )
+      buffer:enable( shader )
     end
     self.buffers.index:enable()
   gl.BindVertexArray( 0 )
 end
 
-function Mesh:draw( count, effect )
-  eiga.graphics.useEffect( effect )
+function Mesh:draw( count, shader )
+  eiga.graphics.useShader( shader )
   gl.BindVertexArray( self.vertex_array[0] )
   gl.DrawElements( gl.TRIANGLES, count, self.buffers.index.gl_type, nil);
   gl.BindVertexArray( 0 )
-  eiga.graphics.useEffect()
+  eiga.graphics.useShader()
 end
 
 return setmetatable(

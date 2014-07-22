@@ -75,7 +75,7 @@ local data = {
 
 local mesh = eiga.graphics.newMesh( "vec4 position;vec2 texcoord", #data.texcoord/2, #data.index )
 
-local effect = eiga.graphics.newEffect( "assets/effect.vert",
+local shader = eiga.graphics.newShader( "assets/effect.vert",
                                         "assets/effect.frag" );
 
 local world = mat4.scaling ( vec3(2.0, 2.0, 2.0) )
@@ -109,20 +109,20 @@ function eiga.load ( args )
   mesh.buffers.position:setData( data.position )
   mesh.buffers.texcoord:setData( data.texcoord )
   mesh.buffers.index:setData( data.index )
-  mesh:link( effect )
+  mesh:link( shader )
 
-  effect:sendTexture( 0, "tex0")
-  effect:sendMatrix4( toTable(world:transposed()), "Model" )
-  effect:sendMatrix4( toTable(view:transposed()), "View" )
-  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  shader:sendTexture( 0, "tex0")
+  shader:sendMatrix4( toTable(world:transposed()), "Model" )
+  shader:sendMatrix4( toTable(view:transposed()), "View" )
+  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end
 
 function eiga.update ( dt )
-  effect:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0.3, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
+  shader:sendMatrix4( toTable((world*mat4.fromAxisAngle( vec3(0.3, 1, 0), eiga.timer.get_time() )):transposed()) , "Model" )
 end
 
 function eiga.draw ()
-  mesh:draw( #data.index, effect )
+  mesh:draw( #data.index, shader )
 end
 
 function eiga.keypressed ( key )
@@ -134,5 +134,5 @@ end
 function eiga.resized ( width, height )
   gl.Viewport( 0, 0, width, height )
   proj = mat4.perspectiveFovLH( fov, width/height, 0.5, 100 )
-  effect:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
+  shader:sendMatrix4( toTable(toGLProj(proj):transposed()), "Projection" )
 end

@@ -19,10 +19,10 @@
 -- DEALINGS IN THE SOFTWARE.
 
 function eiga.config ( o )
-  o.screen.width = 600
-  o.screen.height = 600
-  o.screen.fullscreen = false
-  o.screen.vsync = false
-  o.screen.fsaa  = 16
-  o.screen.title = "eiga: VAO - Cube"
+  o.window.width = 600
+  o.window.height = 600
+  o.window.fullscreen = false
+  o.window.vsync = false
+  o.window.fsaa  = 16
+  o.window.title = "eiga: VAO - Cube"
 end

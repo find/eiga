@@ -1,5 +1,5 @@
-local Effect = {}
-Effect.__index = Effect
+local Shader = {}
+Shader.__index = Shader
 
 local ffi = require 'ffi'
 
@@ -60,11 +60,11 @@ local function new ( vs_src, fs_src )
   gl.AttachShader( obj.program, obj.shader.fs )
   gl.LinkProgram( obj.program )
 
-  return setmetatable( obj, Effect )
+  return setmetatable( obj, Shader )
 end
 
-function Effect:sendMatrix4 ( matrix, name )
-  eiga.graphics.useEffect( self )
+function Shader:sendMatrix4 ( matrix, name )
+  eiga.graphics.useShader( self )
   if matrix ~= self.l_cache[name] then
     self.l_cache[name] = matrix
     self.c_cache[name] = ffi.new( "GLfloat[?]", 16, matrix )
@@ -73,11 +73,11 @@ function Effect:sendMatrix4 ( matrix, name )
   end
 
   gl.UniformMatrix4fv( self.gl_cache[name], 1, gl.FALSE, self.c_cache[name] )
-  eiga.graphics.useEffect()
+  eiga.graphics.useShader()
 end
 
-function Effect:sendFloat4 ( val, name )
-  eiga.graphics.useEffect( self )
+function Shader:sendFloat4 ( val, name )
+  eiga.graphics.useShader( self )
   if val ~= self.l_cache[name] then
     self.l_cache[name] = val
     self.c_cache[name] = ffi.new( "GLfloat[?]", 4, val )
@@ -86,11 +86,11 @@ function Effect:sendFloat4 ( val, name )
   end
 
   gl.UniformFloat4fv( self.gl_cache[name], 1, gl.FALSE, self.c_cache[name] )
-  eiga.graphics.useEffect()
+  eiga.graphics.useShader()
 end
 
-function Effect:sendTexture ( texture, name )
-  eiga.graphics.useEffect( self )
+function Shader:sendTexture ( texture, name )
+  eiga.graphics.useShader( self )
   if not self.l_cache[name] then
     self.l_cache[name] = texture
     self.gl_cache[name] = gl.GetUniformLocation(self.program, name)
@@ -98,7 +98,7 @@ function Effect:sendTexture ( texture, name )
   end
 
   gl.Uniform1i( self.gl_cache[name], texture )
-  eiga.graphics.useEffect()
+  eiga.graphics.useShader()
 end
 
 return setmetatable(
