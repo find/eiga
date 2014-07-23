@@ -52,6 +52,14 @@ function Mesh:draw( count, shader )
   eiga.graphics.useShader()
 end
 
+function Mesh:drawPart( start, count, shader )
+  eiga.graphics.useShader( shader )
+  gl.BindVertexArray( self.vertex_array[0] )
+  gl.DrawElements( gl.TRIANGLES, count, self.buffers.index.gl_type, ffi.cast('void*', self.buffers.index.type_size*start) );
+  gl.BindVertexArray( 0 )
+  eiga.graphics.useShader()
+end
+
 return setmetatable(
   {
     new = new

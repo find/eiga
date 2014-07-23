@@ -33,7 +33,7 @@ varying vec2 ExTexCoord;
 
 void main()
 {
-    ExTexCoord  = texcoord;
+    ExTexCoord  = vec2(texcoord.x, 1.0-texcoord.y);
     WorldNormal = (vec4(normal,1) * Model).xyz;
 
     gl_Position = vec4(position,1) * Model * View * Projection; // Projection * View * Model * Position;

@@ -20,7 +20,10 @@
 
 #version 110
 
-uniform sampler2D tex0;
+uniform sampler2D diffuseMap;
+uniform vec4 diffuse;
+uniform vec4 ambient;
+uniform bool hasDiffuseMap;
 
 varying vec2 ExTexCoord;
 varying vec3 WorldNormal;
@@ -30,7 +33,11 @@ void main()
 {
     // light dir -----------------+
     //                            |
-    gl_FragColor = vec4(abs(dot(vec3(0,-0.3,1), WorldNormal))*vec3(1,1,1), 1);
+    gl_FragColor = vec4(abs(dot(vec3(0,-0.2,0.8), WorldNormal))*vec3(1,1,1)*diffuse.rgb+ambient.rgb, diffuse.a);
     //                                                         |
     // light color --------------------------------------------+
+
+    if(hasDiffuseMap)
+        gl_FragColor.rgb *= texture2D( diffuseMap, ExTexCoord ).rgb;
+    // gl_FragColor.rgb += texture2D( diffuseMap, ExTexCoord ).rgb*0.01;
 }

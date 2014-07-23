@@ -86,7 +86,20 @@ function Shader:sendFloat4 ( val, name )
     assert( self.gl_cache[name] ~= -1, name )
   end
 
-  gl.UniformFloat4fv( self.gl_cache[name], 1, gl.FALSE, self.c_cache[name] )
+  gl.Uniform4fv( self.gl_cache[name], 1, self.c_cache[name] )
+  eiga.graphics.useShader()
+end
+
+function Shader:sendBool ( val, name )
+  eiga.graphics.useShader( self )
+  if val ~= self.l_cache[name] then
+    self.l_cache[name] = val
+    self.c_cache[name] = ffi.cast( "GLboolean", val )
+    self.gl_cache[name] = gl.GetUniformLocation(self.program, name)
+    assert( self.gl_cache[name] ~= -1, name )
+  end
+
+  gl.Uniform1i( self.gl_cache[name], self.c_cache[name] )
   eiga.graphics.useShader()
 end
 

@@ -26,6 +26,8 @@ local soil = eiga.ffi.soil
 local physfs = eiga.alias.physfs()
 
 local Math = require 'math3dhelper'
+_G.class = require 'middleclass'
+
 
 local data = {
     position = {},
@@ -38,11 +40,105 @@ local insertEach = function(t, ...)
         table.insert(t, v)
     end
 end
-
-local lines=function(str)
-    local luastr = ffi.string(str)
+local lines=function(str, size)
+    local luastr = type(str)=='string' and str or ffi.string(str, size)
     return string.gmatch(luastr, '[^\r\n]+')
 end
+local map=function(f, list)
+    local result = {}
+    for i,v in ipairs(list) do
+        result[i] = f(v)
+    end
+    return result
+end
+
+-- ref http://lua-users.org/wiki/SplitJoin
+string.split=function(self, sSeparator, bRegexp)
+	assert(sSeparator ~= '')
+	local aRecord = {}
+    if bRegexp == nil then bRegexp = true end
+    local bPlain = not bRegexp
+	if self:len() > 0 then
+		local nField=1 nStart=1
+		local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+		while nFirst do
+			aRecord[nField] = self:sub(nStart, nFirst-1)
+			nField = nField+1
+			nStart = nLast+1
+			nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+		end
+		aRecord[nField] = self:sub(nStart)
+	end
+	return aRecord
+end
+
+local Material = class('Material')
+Material.initialize = function(self, mtlcontent, name)
+    assert(mtlcontent and name)
+    self.name          = name
+    self.ambient       = {0,0,0}
+    self.diffuse       = {1,1,1}
+    self.specular      = {0,0,0}
+    self.specularPower = 0
+    self.transparency  = 1.0
+    self.ambientMap    = nil
+    self.diffuseMap    = nil
+    self.specularMap   = nil
+    self.highlightMap  = nil
+
+    local nm = nil
+    for line in lines(mtlcontent) do
+        local newmtl = line:match('newmtl%s+(%w+)')
+        if newmtl and nm==name then
+            break -- entering new material section
+        elseif newmtl then
+            nm = newmtl
+        end
+        if nm == name then
+            local cmd, val = line:match('(%g+)%s+(.+)')
+            if cmd=='Ka' then
+                self.ambient = map(tonumber, val:split('%s+'))
+            elseif cmd=='Kd' then
+                self.diffuse = map(tonumber, val:split('%s+'))
+            elseif cmd=='Ks' then
+                self.specular = map(tonumber, val:split('%s+'))
+            elseif cmd=='Ns' then
+                self.specularPower = tonumber(val)
+            elseif cmd=='d' then
+                self.transparency = tonumber(val)
+            elseif cmd=='map_Kd' then
+                self.diffuseMap = eiga.graphics.newTexture('assets/'..val, gl.LINEAR, gl.LINEAR)
+            elseif cmd~='newmtl' then
+                print('unknown property:', cmd)
+            end
+        end
+    end
+end
+
+local mtllib = nil
+local loadMtllib = function(path)
+    local mtllib = {}
+    local mtlsource = ffi.string(eiga.filesystem.read(path))
+    for line in lines(mtlsource) do
+        local mtl = line:match('newmtl%s+(%w+)')
+        if mtl then
+            mtllib[mtl] = Material(mtlsource, mtl)
+        end
+    end
+    return mtllib
+end
+
+local MeshPart = class('MeshPart')
+MeshPart.initialize = function(self)
+    self.start    = 0
+    self.length   = 0
+    self.material = nil
+end
+
+local meshParts = {}
+local currentPart = MeshPart()
+
+print('loading model ...')
 for line in lines(eiga.filesystem.read('assets/Miku_Hatsune_Ver2.obj')) do
     local tp=line:match('(%w+)')
     if tp == 'v' then
@@ -61,10 +157,33 @@ for line in lines(eiga.filesystem.read('assets/Miku_Hatsune_Ver2.obj')) do
             assert(i1==i2 and i1==i3)
             table.insert(data.index, tonumber(i1)-1)
         end
+    elseif tp == 'mtllib' then
+        if mtllib ~= nil then
+            print('mtl lib already loaded')
+        else
+            print(string.format('loading mtllib "%s" ...', line:match('mtllib%s+(%g+)')))
+            mtllib = loadMtllib(line:match('mtllib%s+(%g+)'))
+        end
+    elseif tp == 'usemtl' then
+        currentPart.length = #data.index - currentPart.start
+        if( currentPart.length > 0 ) then
+            table.insert(meshParts, currentPart)
+        end
+
+        currentPart = MeshPart() -- start new material
+        currentPart.material = mtllib[line:match('usemtl%s+(%g+)')]
+        currentPart.start    = #data.index
     else
         -- pass
     end
 end
+
+currentPart.length = #data.index - currentPart.start
+if currentPart.length > 0 then
+    table.insert(meshParts, currentPart)
+end
+
+print('done.')
 assert(#data.position == #data.normal, string.format('positions has %d elements, normal has %d elements', #data.position, #data.normal))
 assert(#data.position/3 == #data.texcoord/2, string.format('texcoord has %d elements', #data.texcoord))
 
@@ -94,18 +213,15 @@ local toGLProj = function(m)
     return m
 end
 
+
 function eiga.load ( args )
-  gl.Enable( gl.CULL_FACE )
+  gl.Disable( gl.CULL_FACE )
   -- gl.FrontFace( gl.CW )
-  -- gl.Enable( gl.TEXTURE_2D )
-  -- gl.Enable( gl.BLEND )
-  -- gl.BlendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA )
+  gl.Enable( gl.TEXTURE_2D )
+  gl.Enable( gl.BLEND )
+  gl.BlendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA )
   gl.Enable( gl.DEPTH_TEST )
   gl.DepthFunc( gl.LESS )
-
-  -- gl.ActiveTexture( gl.TEXTURE0 )
-  -- stone_texture = eiga.graphics.newTexture( "assets/stone.png", gl.NEAREST, gl.NEAREST )
-  -- gl.BindTexture( gl.TEXTURE_2D, stone_texture )
 
   mesh.buffers.position:setData( data.position )
   mesh.buffers.texcoord:setData( data.texcoord )
@@ -124,7 +240,27 @@ function eiga.update ( dt )
 end
 
 function eiga.draw ()
-  mesh:draw( #data.index, shader )
+  if #meshParts>0 then
+    for _,p in ipairs(meshParts) do
+      local diffuse = p.material.diffuse
+      local ambient = p.material.ambient
+      shader:sendFloat4( {diffuse[1], diffuse[2], diffuse[3], p.material.transparency}, 'diffuse' )
+      shader:sendFloat4( {ambient[1], ambient[2], ambient[3], 1}, 'ambient' )
+
+      if p.material.diffuseMap~=nil then
+        gl.ActiveTexture( gl.TEXTURE0 )
+        gl.BindTexture( gl.TEXTURE_2D, p.material.diffuseMap )
+        shader:sendTexture( 0, 'diffuseMap' )
+        shader:sendBool( true, "hasDiffuseMap" )
+      else
+        shader:sendBool( false, "hasDiffuseMap" )
+      end
+
+      mesh:drawPart( p.start, p.length, shader )
+    end
+  else
+    mesh:draw( #data.index, shader )
+  end
 end
 
 function eiga.keypressed ( key )

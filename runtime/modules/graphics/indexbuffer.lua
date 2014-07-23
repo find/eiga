@@ -30,6 +30,7 @@ local function new ( size )
 end
 
 function IndexBuffer:setData( data )
+  assert(self.buffer_size >= #data*self.type_size)
   gl.BindBuffer( gl.ELEMENT_ARRAY_BUFFER, self.buffer_id[0] )
   ffi.copy(
     gl.MapBuffer( gl.ELEMENT_ARRAY_BUFFER, gl.WRITE_ONLY ),
