@@ -54,22 +54,22 @@ end
 
 -- ref http://lua-users.org/wiki/SplitJoin
 string.split=function(self, sSeparator, bRegexp)
-	assert(sSeparator ~= '')
-	local aRecord = {}
+    assert(sSeparator ~= '')
+    local aRecord = {}
     if bRegexp == nil then bRegexp = true end
     local bPlain = not bRegexp
-	if self:len() > 0 then
-		local nField=1 nStart=1
-		local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-		while nFirst do
-			aRecord[nField] = self:sub(nStart, nFirst-1)
-			nField = nField+1
-			nStart = nLast+1
-			nFirst,nLast = self:find(sSeparator, nStart, bPlain)
-		end
-		aRecord[nField] = self:sub(nStart)
-	end
-	return aRecord
+    if self:len() > 0 then
+        local nField=1 nStart=1
+        local nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+        while nFirst do
+            aRecord[nField] = self:sub(nStart, nFirst-1)
+            nField = nField+1
+            nStart = nLast+1
+            nFirst,nLast = self:find(sSeparator, nStart, bPlain)
+        end
+        aRecord[nField] = self:sub(nStart)
+    end
+    return aRecord
 end
 
 local Material = class('Material')
@@ -227,6 +227,14 @@ function eiga.load ( args )
   mesh.buffers.texcoord:setData( data.texcoord )
   mesh.buffers.normal:setData( data.normal )
   mesh.buffers.index:setData( data.index )
+
+  -- free unused memory
+  data.position = nil
+  data.texcoord = nil
+  data.normal   = nil
+  print(string.format('%dKB in use', collectgarbage('count')))
+  collectgarbage('collect')
+  print(string.format('%dKB in use now', collectgarbage('count')))
   mesh:link( shader )
 
   -- shader:sendTexture( 0, "tex0")
