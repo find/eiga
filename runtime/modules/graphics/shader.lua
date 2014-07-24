@@ -63,6 +63,19 @@ local function new ( vs_src, fs_src )
   return setmetatable( obj, Shader )
 end
 
+function Shader:__gc()
+  print('shader released')
+  if self.shader.vs~=nil and self.shader.vs~=0 then
+      gl.DeleteShader( self.shader.vs )
+  end
+  if self.shader.ps~=nil and self.shader.ps~=0 then
+      gl.DeleteShader( self.shader.ps )
+  end
+  if self.program ~= nil and self.program ~= 0 then
+      gl.DeleteProgram( self.program )
+  end
+end
+
 function Shader:sendMatrix4 ( matrix, name, transposed )
   transposed = transposed or gl.FALSE
   eiga.graphics.useShader( self )

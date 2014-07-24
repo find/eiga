@@ -65,15 +65,21 @@ local data = {
                0, 1, 1, 1, 0, 0, 1, 0,
                0, 1, 1, 1, 0, 0, 1, 0,
                0, 1, 1, 1, 0, 0, 1, 0 };
-  index = { 0, 1, 3, 0, 3, 2,
+--[[  index = { 0, 1, 3, 0, 3, 2,
             4, 5, 7, 4, 7, 6,
             8, 9, 11, 8, 11, 10,
             12, 13, 15, 12, 15, 14,
             16, 17, 19, 16, 19, 18,
-            20, 21, 23, 20, 23, 22 };
+            20, 21, 23, 20, 23, 22 }; --]]
+  index = { 0,1,2,3,
+            4,5,6,7,
+            8,9,10,11,
+            12,13,14,15,
+            16,17,18,19,
+            20,21,22,23 }
 }
 
-local mesh = eiga.graphics.newMesh( "vec4 position;vec2 texcoord", #data.texcoord/2, #data.index )
+local mesh = eiga.graphics.newMesh( "vec4 position;vec2 texcoord", #data.texcoord/2, #data.index, gl.QUAD_STRIP )
 
 local shader = eiga.graphics.newShader( "assets/effect.vert",
                                         "assets/effect.frag" );

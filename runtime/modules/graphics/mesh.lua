@@ -18,21 +18,37 @@ local parseFormatString = function(format)
     return parts
 end
 
-local function new ( format, vbSize, ibSize )
+local function new ( format, vbSize, ibSize, mode, usage )
   print(string.format('new mesh of format "%s", vbSize=%d, ibSize=%d', format, vbSize, ibSize))
+  mode = mode or gl.TRIANGLES
+  usage = usage or gl.STATIC_DRAW
   
   local obj = {
     vertex_array = eiga.graphics.newVertexArray();
     buffers = {
-      index = eiga.graphics.newIndexBuffer( ibSize )
-    }
+      index = eiga.graphics.newIndexBuffer( ibSize, usage )
+    };
+    mode = mode
   }
   local elements = parseFormatString(format)
   for i,v in pairs(elements) do
-    obj.buffers[v.name] = eiga.graphics.newArrayBuffer(v.type, v.name, vbSize)
+    obj.buffers[v.name] = eiga.graphics.newArrayBuffer(v.type, v.name, vbSize, usage)
   end
 
   return setmetatable( obj, Mesh )
+end
+
+function Mesh:release()
+  for _, b in pairs(self.buffers) do
+    b:release()
+  end
+  self.buffers={}
+  gl.DeleteVertexArrays(1, self.vertex_array)
+  self.vertex_array=nil
+end
+
+function Mesh:__gc()
+  self:release()
 end
 
 function Mesh:link( shader )
@@ -47,7 +63,7 @@ end
 function Mesh:draw( count, shader )
   eiga.graphics.useShader( shader )
   gl.BindVertexArray( self.vertex_array[0] )
-  gl.DrawElements( gl.TRIANGLES, count, self.buffers.index.gl_type, nil);
+  gl.DrawElements( self.mode, count, self.buffers.index.gl_type, nil);
   gl.BindVertexArray( 0 )
   eiga.graphics.useShader()
 end
@@ -55,7 +71,7 @@ end
 function Mesh:drawPart( start, count, shader )
   eiga.graphics.useShader( shader )
   gl.BindVertexArray( self.vertex_array[0] )
-  gl.DrawElements( gl.TRIANGLES, count, self.buffers.index.gl_type, ffi.cast('void*', self.buffers.index.type_size*start) );
+  gl.DrawElements( self.mode, count, self.buffers.index.gl_type, ffi.cast('void*', self.buffers.index.type_size*start) );
   gl.BindVertexArray( 0 )
   eiga.graphics.useShader()
 end

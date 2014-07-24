@@ -38,7 +38,7 @@ local function parse ( format )
   return component_type, tonumber(component_count)
 end
 
-local function new ( format, name, size )
+local function new ( format, name, size, usage )
   local component_type, component_count = parse( format )
   local attribute_location = nil
   assert( component_type )
@@ -48,6 +48,7 @@ local function new ( format, name, size )
   --   assert( component_count == 4, string.format("For now, buffers need to be homogeneous: %d", component_count) )
   -- end
 
+  usage = usage or gl.STATIC_DRAW
 
   local attribute_pointer_type = BUFFER_DATA_TYPE[ component_type ]
   local ffi_length_signature = FFI_LENGTH_SIGNATURE[ attribute_pointer_type ]
@@ -59,7 +60,7 @@ local function new ( format, name, size )
 
   gl.GenBuffers( 1, buffer_id  )
   gl.BindBuffer( gl.ARRAY_BUFFER, buffer_id[0] )
-  gl.BufferData( gl.ARRAY_BUFFER, buffer_size , nil, gl.STATIC_DRAW )
+  gl.BufferData( gl.ARRAY_BUFFER, buffer_size , nil, usage )
   gl.BindBuffer( gl.ARRAY_BUFFER, 0 )
 
   local obj = {
@@ -69,12 +70,24 @@ local function new ( format, name, size )
     attribute_string = attribute_string;
     buffer_size = buffer_size;
     type_size = type_size;
+    usage = usage;
     ffi_length_signature = ffi_length_signature;
     attribute_pointer_type = attribute_pointer_type;
     component_count = component_count;
   }
 
   return setmetatable( obj, ArrayBuffer )
+end
+
+function ArrayBuffer:release()
+    if self.buffer_id ~= nil and self.buffer_id[0] ~= 0 then
+        gl.DeleteBuffers(1, self.buffer_id)
+    end
+    self.buffer_id = nil
+end
+
+function ArrayBuffer:__gc()
+    self:release()
 end
 
 function ArrayBuffer:setData( data )
@@ -85,7 +98,7 @@ function ArrayBuffer:setData( data )
     self.buffer_size = #data * self.type_size
     gl.BindBuffer( gl.ARRAY_BUFFER, self.buffer_id[0] )
     -- set the buffer to a null pointer, essentially flagging it for gc
-    gl.BufferData( gl.ARRAY_BUFFER, self.buffer_size , nil, gl.STATIC_DRAW )
+    gl.BufferData( gl.ARRAY_BUFFER, self.buffer_size , nil, self.usage )
     -- Map the buffer, and add memcopy data
     do
       ffi.copy(
