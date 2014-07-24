@@ -196,19 +196,16 @@ local shader = eiga.graphics.newShader( "assets/effect.vert",
                                         "assets/effect.frag" );
 
 local world = mat4.identity()
-local view = mat4.lookAtLH( vec3( 0, 12, -25 ),
+local view = mat4.lookAtRH( vec3( 0, 12, -25 ),
                             vec3( 0, 8, 0 ),
                             vec3( 0, 1, 0 ) )
 local fov = 3.14159265358979*60.0/180.0
-local proj = mat4.perspectiveFovLH( fov, 1, 0.5, 100 )
-
-view:set(0,0, -view(0,0)) -- flip x axis
+local proj = mat4.perspectiveFovRH( fov, 1, 0.5, 100 )
 
 local toTable = Math.toTable
 
 local toGLProj = function(m)
     m = mat4(m)
-    -- m = mat4.scaling(vec3(1,1,2)) * m
     m:set(3,2, 2*m(3,2))
     return m
 end
@@ -279,6 +276,6 @@ end
 
 function eiga.resized ( width, height )
   gl.Viewport( 0, 0, width, height )
-  proj = mat4.perspectiveFovLH( fov, width/height, 0.5, 100 )
+  proj = mat4.perspectiveFovRH( fov, width/height, 0.5, 100 )
   shader:sendMatrix4( toTable(toGLProj(proj)), "Projection", true )
 end

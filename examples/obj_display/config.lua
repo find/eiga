@@ -23,7 +23,7 @@ function eiga.config ( o )
   o.window.height = 600
   o.window.fullscreen = false
   o.window.vsync = false
-  o.window.fsaa  = 8
+  o.window.fsaa  = 16
   o.window.title = "Hello Miku"
   o.window.glprofile = 'compat'
   o.window.glversion = '3.3'
