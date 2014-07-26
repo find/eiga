@@ -11,31 +11,36 @@ The framework is built upon the insanely fast LuaJIT compiler and it's native FF
 
   ![miku](https://raw.githubusercontent.com/find/eiga/master/examples/obj_display/miku.png)
 
+3. [Instancing](https://github.com/find/eiga/tree/master/examples/cubes/)
+
+  ![cubes](https://raw.githubusercontent.com/find/eiga/master/examples/cubes/instancing.png)
+
 ## Running the examples
 
 Open a terminal/command-line and cd into eiga's top level director.
 
 ###Mac OS X
 
-    ./bin/OSX/x64/luajit runtime/boot.lua examples/immediate_triangle/
+    ./bin/OSX/x64/luajit runtime/boot.lua examples/obj_display/
 
 ###Windows
 
 __64 Bit__
 
-    bin\Windows\x64\luajit.exe runtime\boot.lua examples\immediate_triangle\
+    bin\Windows\x64\luajit.exe runtime\boot.lua examples\obj_display\
 
 __32 Bit__
 
-    bin\Windows\x86\luajit.exe runtime\boot.lua examples\immediate_triangle\
+    bin\Windows\x86\luajit.exe runtime\boot.lua examples\obj_display\
 
 ###Linux
+
 __64 Bit__
 
-    ./bin/Linux/x64/luajit runtime/boot.lua examples/immediate_triangle/
+    ./bin/Linux/x64/luajit runtime/boot.lua examples/obj_display/
 __32 Bit__
 
-    ./bin/Linux/x86/luajit runtime/boot.lua examples/immediate_triangle/
+    ./bin/Linux/x86/luajit runtime/boot.lua examples/obj_display/
 
 ## Influences
 

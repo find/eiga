@@ -63,7 +63,7 @@ local function new ( vs_src, fs_src )
   return setmetatable( obj, Shader )
 end
 
-function Shader:__gc()
+function Shader:release()
   print('shader released')
   if self.shader.vs~=nil and self.shader.vs~=0 then
       gl.DeleteShader( self.shader.vs )
@@ -74,6 +74,14 @@ function Shader:__gc()
   if self.program ~= nil and self.program ~= 0 then
       gl.DeleteProgram( self.program )
   end
+
+  self.shader.vs = nil
+  self.shader.ps = nil
+  self.program   = nil
+end
+
+function Shader:__gc() -- luajit didn't like calling this though ...
+    self:release()
 end
 
 function Shader:sendMatrix4 ( matrix, name, transposed )

@@ -14,6 +14,17 @@ local BUFFER_DATA_TYPE = {
   uint   = gl.UNSIGNED_INT,
   float  = gl.FLOAT,
   vec    = gl.FLOAT,
+  mat    = gl.FLOAT,
+}
+
+local BUFFER_DATA_DIMENSION = {
+  short  = 1,
+  ushort = 1,
+  int    = 1,
+  uint   = 1,
+  float  = 1,
+  vec    = 1,
+  mat    = 2,
 }
 
 local FFI_LENGTH_SIGNATURE = {
@@ -33,7 +44,7 @@ local TYPE_IDENTIFIER = {
 }
 
 local function parse ( format )
-  local component_type, component_count = format:match("([^%d%s]+)(%C)")
+  local component_type, component_count = format:match("([^%d%s]+)(%d*)")
   assert( component_type )
   return component_type, tonumber(component_count)
 end
@@ -43,7 +54,14 @@ local function new ( format, name, size, usage )
   local attribute_location = nil
   assert( component_type )
   component_count = component_count or 1
-  print(string.format('new ArrrayBuffer of type %s(%d), named %s', component_type, component_count, name ))
+
+  do
+    local cc = 1
+    for d=1,BUFFER_DATA_DIMENSION[component_type] do
+      cc = cc * component_count
+    end
+    component_count = cc
+  end
   -- if name ~= "texcoord" then
   --   assert( component_count == 4, string.format("For now, buffers need to be homogeneous: %d", component_count) )
   -- end
@@ -58,6 +76,8 @@ local function new ( format, name, size, usage )
   local attribute_string = name
   local component_count = component_count
 
+  print(string.format('new ArrrayBuffer of type %s(%d), named %s', TYPE_IDENTIFIER[attribute_pointer_type], component_count, name ))
+
   gl.GenBuffers( 1, buffer_id  )
   gl.BindBuffer( gl.ARRAY_BUFFER, buffer_id[0] )
   gl.BufferData( gl.ARRAY_BUFFER, buffer_size , nil, usage )
@@ -66,6 +86,7 @@ local function new ( format, name, size, usage )
   local obj = {
     lua_data = {};
     c_data = {};
+    divisor = 0;
     buffer_id = buffer_id;
     attribute_string = attribute_string;
     buffer_size = buffer_size;
@@ -115,7 +136,7 @@ function ArrayBuffer:setData( data )
     ffi.copy(
       gl.MapBuffer( gl.ARRAY_BUFFER, gl.WRITE_ONLY ),
       ffi.new( self.ffi_length_signature, #data, data ),
-      self.buffer_size)
+      #data*self.type_size)
     gl.UnmapBuffer( gl.ARRAY_BUFFER )
     gl.BindBuffer( gl.ARRAY_BUFFER, 0 )
   end
@@ -129,6 +150,7 @@ function ArrayBuffer:enable( effect )
   end
   gl.VertexAttribPointer( self.attribute_location, self.component_count, self.attribute_pointer_type, gl.FALSE, 0, nil )
   gl.EnableVertexAttribArray( self.attribute_location )
+  gl.VertexAttribDivisor( self.attribute_location, self.divisor )
   gl.BindBuffer( gl.ARRAY_BUFFER, 0 )
 end
 

@@ -25,6 +25,7 @@ local function new ( format, vbSize, ibSize, mode, usage )
   
   local obj = {
     vertex_array = eiga.graphics.newVertexArray();
+    instancing_vertex_array = eiga.graphics.newVertexArray();
     buffers = {
       index = eiga.graphics.newIndexBuffer( ibSize, usage )
     };
@@ -44,7 +45,9 @@ function Mesh:release()
   end
   self.buffers={}
   gl.DeleteVertexArrays(1, self.vertex_array)
+  gl.DeleteVertexArrays(1, self.instancing_vertex_array)
   self.vertex_array=nil
+  self.instancing_vertex_array=nil
 end
 
 function Mesh:__gc()
@@ -53,10 +56,20 @@ end
 
 function Mesh:link( shader )
   gl.BindVertexArray( self.vertex_array[0] )
-    for _, buffer in pairs( self.buffers ) do
-      buffer:enable( shader )
-    end
-    self.buffers.index:enable()
+  for _, buffer in pairs( self.buffers ) do
+    buffer:enable( shader )
+  end
+  self.buffers.index:enable()
+  gl.BindVertexArray( 0 )
+end
+
+function Mesh:linkInstances( shader, instanceVB )
+  gl.BindVertexArray( self.instancing_vertex_array[0] )
+  for _, buffer in pairs( self.buffers ) do
+    buffer:enable( shader )
+  end
+  instanceVB:enable( shader )
+  self.buffers.index:enable()
   gl.BindVertexArray( 0 )
 end
 
@@ -74,6 +87,14 @@ function Mesh:drawPart( start, count, shader )
   gl.DrawElements( self.mode, count, self.buffers.index.gl_type, ffi.cast('void*', self.buffers.index.type_size*start) );
   gl.BindVertexArray( 0 )
   eiga.graphics.useShader()
+end
+
+function Mesh:drawInstanced( count, instanceCount, shader )
+  eiga.graphics.useShader( shader )
+  gl.BindVertexArray( self.instancing_vertex_array[0] )
+  gl.DrawElementsInstanced( self.mode, count, self.buffers.index.gl_type, nil, instanceCount );
+  gl.BindVertexArray( 0 )
+  eiga.graphics.useShader() 
 end
 
 return setmetatable(
