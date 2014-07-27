@@ -92,9 +92,7 @@ local flatten = function(tb, receiver)
     local result = receiver or {}
     for _,item in pairs(tb) do
         if type(item) == 'table' then
-            for _, sub in pairs(flatten(item)) do
-                table.insert(result, sub)
-            end
+            flatten(item, result)
         elseif type(item) == 'userdata' then
             for _, sub in pairs(toTable(item)) do
                 table.insert(result, sub)
@@ -114,6 +112,17 @@ local map = function(f, tb)
     return result
 end
 
+local foldl = function(f, first, tb)
+    if tb==nil or type(tb)~='table' or #tb<1 then
+        return nil
+    end
+    local x = f(first, tb[1])
+    for i=2,#tb do
+        x = f(x, tb[i])
+    end
+    return x
+end
+
 local Box = class('Box')
 Box.initialize = function(self)
     self.mesh  = eiga.graphics.newMesh('vec4 position; vec3 normal', #geomData.position/4, #geomData.index, gl.TRIANGLES)
@@ -121,7 +130,7 @@ Box.initialize = function(self)
     self.mesh.buffers.normal:setData(geomData.normal)
     self.mesh.buffers.index:setData(geomData.index)
 
-    self.instanceVB = eiga.graphics.newArrayBuffer('vec3', 'worldpos', 100, gl.DYNAMIC_DRAW)
+    self.instanceVB = eiga.graphics.newArrayBuffer('mat4', 'world', 100, gl.DYNAMIC_DRAW)
     self.instanceVB.divisor = 1
     self.standardShader   = eiga.graphics.newShader('assets/standard.vert',   'assets/diffuse-fakelighting.frag')
     self.instancingShader = eiga.graphics.newShader('assets/instancing.vert', 'assets/diffuse-fakelighting.frag')
@@ -145,9 +154,9 @@ Box.drawInstanced = function(self, camera, transformlist, diffuse)
             self:draw(camera, t, diffuse)
         end
     else
-        self.instanceData = flatten(map(function(m) return m:row(3):xyz() end, transformlist), self.instanceData)
-        self.instanceVB:setData(self.instanceData)
         self.instanceData = {}
+        self.instanceData = flatten(map(function(m) return m end, transformlist), self.instanceData)
+        self.instanceVB:setData(self.instanceData)
         local numInstances = #transformlist
 
         self.instancingShader:sendMatrix4(toTable(camera:view()), 'view', true)

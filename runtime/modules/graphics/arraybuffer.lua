@@ -55,13 +55,7 @@ local function new ( format, name, size, usage )
   assert( component_type )
   component_count = component_count or 1
 
-  do
-    local cc = 1
-    for d=1,BUFFER_DATA_DIMENSION[component_type] do
-      cc = cc * component_count
-    end
-    component_count = cc
-  end
+  local component_dimension = BUFFER_DATA_DIMENSION[component_type]
   -- if name ~= "texcoord" then
   --   assert( component_count == 4, string.format("For now, buffers need to be homogeneous: %d", component_count) )
   -- end
@@ -71,12 +65,12 @@ local function new ( format, name, size, usage )
   local attribute_pointer_type = BUFFER_DATA_TYPE[ component_type ]
   local ffi_length_signature = FFI_LENGTH_SIGNATURE[ attribute_pointer_type ]
   local type_size = ffi.sizeof( TYPE_IDENTIFIER[ attribute_pointer_type ] )
-  local buffer_size = size * type_size * component_count
+  local buffer_size = size * type_size * math.pow(component_count, component_dimension)
   local buffer_id = ffi.new ( "GLuint[1]" )
   local attribute_string = name
   local component_count = component_count
 
-  print(string.format('new ArrrayBuffer of type %s(%d), named %s', TYPE_IDENTIFIER[attribute_pointer_type], component_count, name ))
+  print(string.format('new ArrrayBuffer of type %s(%dx%d), named %s', TYPE_IDENTIFIER[attribute_pointer_type], component_count, component_dimension, name ))
 
   gl.GenBuffers( 1, buffer_id  )
   gl.BindBuffer( gl.ARRAY_BUFFER, buffer_id[0] )
@@ -95,6 +89,7 @@ local function new ( format, name, size, usage )
     ffi_length_signature = ffi_length_signature;
     attribute_pointer_type = attribute_pointer_type;
     component_count = component_count;
+    component_dimension = component_dimension;
   }
 
   return setmetatable( obj, ArrayBuffer )
@@ -148,9 +143,27 @@ function ArrayBuffer:enable( effect )
   if not self.attribute_location then
     self.attribute_location = gl.GetAttribLocation( effect.program, self.attribute_string )
   end
-  gl.VertexAttribPointer( self.attribute_location, self.component_count, self.attribute_pointer_type, gl.FALSE, 0, nil )
-  gl.EnableVertexAttribArray( self.attribute_location )
-  gl.VertexAttribDivisor( self.attribute_location, self.divisor )
+  if self.component_dimension == 1 then
+      gl.VertexAttribPointer( self.attribute_location, self.component_count, self.attribute_pointer_type, gl.FALSE, 0, nil )
+      gl.EnableVertexAttribArray( self.attribute_location )
+      gl.VertexAttribDivisor( self.attribute_location, self.divisor )
+  elseif self.component_dimension == 2 and self.component_count == 4 then
+      for i=0,self.component_count-1 do
+          local attrid = self.attribute_location + i
+          gl.VertexAttribPointer(
+              attrid,
+              self.component_count,
+              self.attribute_pointer_type,
+              gl.FALSE,
+              self.type_size*self.component_count*self.component_count,
+              ffi.cast('void*', self.type_size*self.component_count*i)
+          )
+          gl.EnableVertexAttribArray( attrid )
+          gl.VertexAttribDivisor( attrid, self.divisor )
+      end
+  else
+      error("i don't know what to do")
+  end
   gl.BindBuffer( gl.ARRAY_BUFFER, 0 )
 end
 

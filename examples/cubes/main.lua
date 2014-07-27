@@ -38,6 +38,10 @@ eiga.update = function(dt)
     local x,z = math.cos(uptime*0.5), math.sin(uptime*0.5)*2
     camera.eye.x = x*10
     camera.eye.z = z*10
+
+    for i,v in ipairs(transforms) do
+        transforms[i] = mat4.rotation(0.001*i, 0,1,1) * transforms[i]
+    end
 end
 
 eiga.draw = function()
