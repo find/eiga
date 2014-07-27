@@ -70,7 +70,7 @@ local function new ( format, name, size, usage )
   local attribute_string = name
   local component_count = component_count
 
-  print(string.format('new ArrrayBuffer of type %s(%dx%d), named %s', TYPE_IDENTIFIER[attribute_pointer_type], component_count, component_dimension, name ))
+  print(string.format('new ArrrayBuffer of type %s(%d^%d), named %s', TYPE_IDENTIFIER[attribute_pointer_type], component_count, component_dimension, name ))
 
   gl.GenBuffers( 1, buffer_id  )
   gl.BindBuffer( gl.ARRAY_BUFFER, buffer_id[0] )

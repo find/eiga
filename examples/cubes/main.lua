@@ -27,7 +27,7 @@ eiga.load = function()
     for x=1,10 do
         for y=1,10 do
             local i = (x-1)*10+(y-1)+1
-            transforms[i] = mat4.translation(x*2-10, 0, y*2-10)
+            transforms[i] = mat4.rotation(0.1*i, 0,1,1) * mat4.translation(x*2-10, 0, y*2-10)
         end
     end
 end
@@ -40,7 +40,7 @@ eiga.update = function(dt)
     camera.eye.z = z*10
 
     for i,v in ipairs(transforms) do
-        transforms[i] = mat4.rotation(0.001*i, 0,1,1) * transforms[i]
+        transforms[i] = mat4.rotation(0.05, 0,1,1) * transforms[i]
     end
 end
 
