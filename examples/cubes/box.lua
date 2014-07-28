@@ -155,7 +155,7 @@ Box.drawInstanced = function(self, camera, transformlist, diffuse)
         end
     else
         self.instanceData = {}
-        self.instanceData = flatten(map(function(m) return m end, transformlist), self.instanceData)
+        self.instanceData = flatten(map(function(m) return m:transposed() end, transformlist), self.instanceData)
         self.instanceVB:setData(self.instanceData)
         local numInstances = #transformlist
 

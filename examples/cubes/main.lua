@@ -19,7 +19,7 @@ local transforms = {}
 local uptime = 0 
 
 eiga.load = function()
-    gl.Disable(gl.CULL_FACE)
+    gl.Enable(gl.CULL_FACE)
     gl.Disable(gl.BLEND)
     gl.Enable(gl.DEPTH_TEST)
     gl.DepthFunc(gl.LESS)
@@ -40,8 +40,9 @@ eiga.update = function(dt)
     camera.eye.z = z*10
 
     for i,v in ipairs(transforms) do
-        transforms[i] = mat4.rotation(0.05, 0,1,1) * transforms[i]
+        transforms[i] = mat4.rotation(0.05, 0,1,1) * v
     end
+    collectgarbage('step')
 end
 
 eiga.draw = function()
